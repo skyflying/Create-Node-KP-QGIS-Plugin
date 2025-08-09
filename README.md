@@ -1,6 +1,7 @@
 # Line Node Processor
 
 QGIS 3.28 Processing-only plugin for sampling points along line features at fixed intervals, with optional vertex preservation, azimuth calculation, 2D/3D length computation, and elevation sampling from a GeoTIFF.
+It is the same function as the another exe file from my github.
 
 ## Features
 - **Fixed distance sampling** (meters) along line geometries.
