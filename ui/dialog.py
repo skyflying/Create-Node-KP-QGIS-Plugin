@@ -3,7 +3,7 @@ from typing import Optional
 from qgis.PyQt.QtWidgets import (
     QDialog, QVBoxLayout, QHBoxLayout, QLabel, QPushButton, QComboBox,
     QLineEdit, QCheckBox, QFileDialog, QMessageBox, QWidget,
-    QGroupBox, QGridLayout, QFormLayout, QSizePolicy
+    QGroupBox, QGridLayout, QFormLayout, QSizePolicy, QSpacerItem
 )
 from qgis.PyQt.QtCore import Qt
 from qgis.core import (
@@ -32,32 +32,42 @@ class LineNodeProcessorDialog(QDialog):
         super().__init__(iface.mainWindow())
         self.iface = iface
         self.setWindowTitle("Line Node Processor")
-        self.setMinimumSize(720, 520)
+        self.setMinimumSize(800, 560)
         self.setSizeGripEnabled(True)
         self.setStyleSheet("""
-        QGroupBox { margin-top: 4px; }
-        QGroupBox::title { subcontrol-origin: margin; left: 6px; padding: 0 2px; }
+        QGroupBox { margin-top: 8px; }
+        QGroupBox::title { subcontrol-origin: margin; left: 8px; padding: 2px 4px 6px 4px; font-weight: 600; }
         QLabel { margin: 0px; }
         """)
+
+        # helper: fixed-width labels to avoid crowding
+        self.LABEL_W = 120
+        def _L(text: str) -> QLabel:
+            lab = QLabel(text)
+            lab.setFixedWidth(self.LABEL_W)
+            lab.setAlignment(Qt.AlignRight | Qt.AlignVCenter)
+            return lab
+        self._L = _L
 
         # ---- Root grid (two columns) ----
         root = QGridLayout(self)
         root.setContentsMargins(8, 8, 8, 8)
-        root.setHorizontalSpacing(10)
-        root.setVerticalSpacing(8)
+        root.setHorizontalSpacing(12)
+        root.setVerticalSpacing(10)
 
         # ---- Left: Vector (Line) ----
         grpVec = QGroupBox("Vector (Line)")
-        grpVec.setFlat(True)
         frmVec = QFormLayout(grpVec)
-        frmVec.setContentsMargins(6, 6, 6, 6)
-        frmVec.setHorizontalSpacing(8)
-        frmVec.setVerticalSpacing(6)
+        frmVec.setContentsMargins(8, 8, 8, 8)
+        frmVec.setHorizontalSpacing(10)
+        frmVec.setVerticalSpacing(8)
+        frmVec.setRowWrapPolicy(QFormLayout.DontWrapRows)
+        frmVec.setFieldGrowthPolicy(QFormLayout.AllNonFixedFieldsGrow)
 
         self.cmbLine = QgsMapLayerComboBox()
         self.cmbLine.setFilters(QgsMapLayerProxyModel.LineLayer)
         self.cmbLine.setSizeAdjustPolicy(QComboBox.AdjustToMinimumContentsLengthWithIcon)
-        self.cmbLine.setMinimumContentsLength(16)
+        self.cmbLine.setMinimumContentsLength(18)
 
         row_ext_vec = QHBoxLayout()
         self.chkExtVec = QCheckBox("Use external file")
@@ -65,27 +75,28 @@ class LineNodeProcessorDialog(QDialog):
         row_ext_vec.addWidget(self.chkExtVec)
         row_ext_vec.addWidget(self.btnPickVec)
         row_ext_vec.addStretch(1)
-        row_ext_vec.setSpacing(6)
+        row_ext_vec.setSpacing(8)
 
         self.cmbGroup = QComboBox()
         self.cmbGroup.addItem("(None)", "")
 
-        frmVec.addRow("Project line:", self.cmbLine)
-        frmVec.addRow("External:", self._wrap(row_ext_vec))
-        frmVec.addRow("Group field:", self.cmbGroup)
+        frmVec.addRow(self._L("Project line:"), self.cmbLine)
+        frmVec.addRow(self._L("External:"), self._wrap(row_ext_vec))
+        frmVec.addRow(self._L("Group field:"), self.cmbGroup)
 
         # ---- Right: Raster (DEM) ----
         grpRas = QGroupBox("Elevation (Raster)")
-        grpRas.setFlat(True)
         frmRas = QFormLayout(grpRas)
-        frmRas.setContentsMargins(6, 6, 6, 6)
-        frmRas.setHorizontalSpacing(8)
-        frmRas.setVerticalSpacing(6)
+        frmRas.setContentsMargins(8, 8, 8, 8)
+        frmRas.setHorizontalSpacing(10)
+        frmRas.setVerticalSpacing(8)
+        frmRas.setRowWrapPolicy(QFormLayout.DontWrapRows)
+        frmRas.setFieldGrowthPolicy(QFormLayout.AllNonFixedFieldsGrow)
 
         self.cmbRas = QgsMapLayerComboBox()
         self.cmbRas.setFilters(QgsMapLayerProxyModel.RasterLayer)
         self.cmbRas.setSizeAdjustPolicy(QComboBox.AdjustToMinimumContentsLengthWithIcon)
-        self.cmbRas.setMinimumContentsLength(16)
+        self.cmbRas.setMinimumContentsLength(18)
 
         row_ext_ras = QHBoxLayout()
         self.chkExtRas = QCheckBox("Use external file")
@@ -93,22 +104,23 @@ class LineNodeProcessorDialog(QDialog):
         row_ext_ras.addWidget(self.chkExtRas)
         row_ext_ras.addWidget(self.btnPickRas)
         row_ext_ras.addStretch(1)
-        row_ext_ras.setSpacing(6)
+        row_ext_ras.setSpacing(8)
 
         self.cmbBand = QComboBox()
         self.cmbBand.addItem("1", 1)
 
-        frmRas.addRow("Project raster:", self.cmbRas)
-        frmRas.addRow("External:", self._wrap(row_ext_ras))
-        frmRas.addRow("DEM band:", self.cmbBand)
+        frmRas.addRow(self._L("Project raster:"), self.cmbRas)
+        frmRas.addRow(self._L("External:"), self._wrap(row_ext_ras))
+        frmRas.addRow(self._L("DEM band:"), self.cmbBand)
 
         # ---- Bottom: Sampling / Options ----
         grpOpt = QGroupBox("Sampling / Options")
-        grpOpt.setFlat(True)
         frmOpt = QFormLayout(grpOpt)
-        frmOpt.setContentsMargins(6, 6, 6, 6)
-        frmOpt.setHorizontalSpacing(8)
-        frmOpt.setVerticalSpacing(6)
+        frmOpt.setContentsMargins(8, 8, 8, 8)
+        frmOpt.setHorizontalSpacing(10)
+        frmOpt.setVerticalSpacing(8)
+        frmOpt.setRowWrapPolicy(QFormLayout.DontWrapRows)
+        frmOpt.setFieldGrowthPolicy(QFormLayout.AllNonFixedFieldsGrow)
 
         self.txtDist = QLineEdit()
         self.txtDist.setPlaceholderText("blank ⇒ vertices only")
@@ -118,7 +130,7 @@ class LineNodeProcessorDialog(QDialog):
         self.chkKeepVerts = QCheckBox("Preserve vertices"); self.chkKeepVerts.setChecked(True)
         self.chkPreserveAttrs = QCheckBox("Keep attributes"); self.chkPreserveAttrs.setChecked(True)
         self.chkWriteSHP = QCheckBox("Write Shapefile"); self.chkWriteSHP.setChecked(True)
-        optRow.setSpacing(12)
+        optRow.setSpacing(14)
         optRow.addWidget(self.chkKeepVerts)
         optRow.addWidget(self.chkPreserveAttrs)
         optRow.addWidget(self.chkWriteSHP)
@@ -129,11 +141,11 @@ class LineNodeProcessorDialog(QDialog):
         self.btnOut = QPushButton("Browse…")
         outRow.addWidget(self.txtOut)
         outRow.addWidget(self.btnOut)
-        outRow.setSpacing(6)
+        outRow.setSpacing(8)
 
-        frmOpt.addRow("Distance (m):", self.txtDist)
-        frmOpt.addRow("Options:", self._wrap(optRow))
-        frmOpt.addRow("Output folder:", self._wrap(outRow))
+        frmOpt.addRow(self._L("Distance (m):"), self.txtDist)
+        frmOpt.addRow(self._L("Options:"), self._wrap(optRow))
+        frmOpt.addRow(self._L("Output folder:"), self._wrap(outRow))
 
         # ---- Buttons ----
         btnRow = QHBoxLayout()
@@ -142,7 +154,7 @@ class LineNodeProcessorDialog(QDialog):
         btnRow.addStretch(1)
         btnRow.addWidget(self.btnRun)
         btnRow.addWidget(self.btnClose)
-        btnRow.setSpacing(8)
+        btnRow.setSpacing(10)
 
         # ---- place widgets to root grid ----
         root.addWidget(grpVec, 0, 0)
@@ -173,7 +185,7 @@ class LineNodeProcessorDialog(QDialog):
         self.on_line_layer_changed(self.cmbLine.currentLayer())
         self.on_raster_layer_changed(self.cmbRas.currentLayer())
 
-    # ---- small helper to embed QLayout into QFormLayout ----
+    # ---- helper to embed QLayout into QFormLayout ----
     def _wrap(self, layout):
         w = QWidget()
         w.setLayout(layout)
@@ -279,7 +291,7 @@ class LineNodeProcessorDialog(QDialog):
             lyr = self.cmbRas.currentLayer()
             return lyr if isinstance(lyr, QgsRasterLayer) else None
 
-    # ----- run -----
+    # ----- run with new 3D rules -----
     def run_now(self):
         vlyr = self._load_vector()
         if not vlyr or vlyr.geometryType() != QgsWkbTypes.LineGeometry:
@@ -344,6 +356,8 @@ class LineNodeProcessorDialog(QDialog):
             def round_policy(val):
                 return round_by_distance(val, distance)
 
+            has_dem = bool(rlyr)
+
             total = vlyr.featureCount() or 0
             req = QgsFeatureRequest()
             for i, feat in enumerate(vlyr.getFeatures(req)):
@@ -369,39 +383,53 @@ class LineNodeProcessorDialog(QDialog):
 
                     prev_xy = None
                     prev_elev = None
-                    total_3d = 0.0
+                    total_3d = 0.0 if has_dem else None
 
                     for xy, kp in samples:
-                        elev = elev_sampler.sample(xy) if rlyr else None
-                        d2d = None; d3d = None
+                        elev = elev_sampler.sample(xy) if has_dem else None
 
+                        d2d = None; d3d = None
                         if prev_xy is not None:
                             dx = xy.x() - prev_xy.x()
                             dy = xy.y() - prev_xy.y()
                             d2d = (dx*dx + dy*dy) ** 0.5
-                            if elev is not None and prev_elev is not None:
-                                dz = elev - prev_elev
-                                d3d = (d2d*d2d + dz*dz) ** 0.5
+
+                            if has_dem:
+                                # 若任一端 elevation 缺值 ⇒ 用 2D 代替該段 3D；否則真 3D
+                                if (prev_elev is None) or (elev is None):
+                                    d3d = d2d
+                                else:
+                                    dz = elev - prev_elev
+                                    d3d = (d2d*d2d + dz*dz) ** 0.5
 
                         az = Azimuth.compute(prev_xy, xy)
+
                         d2d_r = round_policy(d2d) if d2d is not None else None
                         d3d_r = round_policy(d3d) if d3d is not None else None
-                        if d2d_r is not None and d3d_r is not None and d3d_r < d2d_r:
+
+                        # 保障 3D >= 2D
+                        if has_dem and d2d_r is not None and d3d_r is not None and d3d_r < d2d_r:
                             d3d_r = d2d_r
-                        if d3d_r is not None:
-                            total_3d += d3d_r
+
+                        # 累積 3D：只有 DEM 時才累積；缺值段已等同 2D
+                        if has_dem and d3d_r is not None:
+                            total_3d = (total_3d or 0.0) + d3d_r
 
                         row = assembler.assemble_row(
-                            xy=xy, elev=elev, d2d=d2d_r, d3d=d3d_r, azimuth=az,
+                            xy=xy,
+                            elev=elev if has_dem else None,
+                            d2d=d2d_r,
+                            d3d=d3d_r if has_dem else None,
+                            azimuth=az,
                             kp=round_policy(kp) if kp is not None else None,
-                            total3d=round_policy(total_3d) if total_3d else None,
+                            total3d=round_policy(total_3d) if (has_dem and total_3d) else None,
                             feature=feat, group_field=group_field, group_value=gval
                         )
                         group_rows[safe].append(row)
                         group_pts[safe].append((xy, row))
 
                         prev_xy = xy
-                        prev_elev = elev
+                        prev_elev = elev if has_dem else None
 
             # write outputs
             for g, rows in group_rows.items():
