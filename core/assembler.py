@@ -9,10 +9,11 @@ class AttributeAssembler:
                      feature: QgsFeature, group_field: Optional[str], group_value: str) -> Dict[str, Any]:
         ll = self.to_wgs84.transform(xy)
         row = {
-            "Longitude": ll.x(), "Latitude": ll.y(),
+            "Longitude": round(ll.x(),8), "Latitude": round(ll.y(),8),
             "Easting": xy.x(), "Northing": xy.y(),
             "Elevation": elev, "Distance": d2d, "Length_3D": d3d,
-            "Azimuth": azimuth, "KP": kp, "Total_3D_Length": total3d,
+            "Azimuth": None if azimuth is None else round(azimuth, 3),
+            "KP": kp, "Total_3D_Length": total3d,
         }
         if group_field: row[group_field] = group_value
         else: row["Group"] = group_value

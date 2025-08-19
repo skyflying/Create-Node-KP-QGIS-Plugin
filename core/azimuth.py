@@ -7,4 +7,4 @@ class Azimuth:
         dx, dy = cur.x()-prev.x(), cur.y()-prev.y()
         if dx == 0 and dy == 0: return None
         ang = math.degrees(math.atan2(dx, dy))  # 0=N, 90=E
-        return ang + 360.0 if ang < 0 else ang
+        return (ang + 360.0) % 360.0
